@@ -8,30 +8,26 @@ pipeline {
             }
         }
         
-        stage('Setup Python Environment') {
+        stage('Find Python') {
             steps {
                 sh '''
+                    # Sprawdź dostępne wersje Pythona
+                    echo "Szukam Pythona w systemie..."
+                    which python3 || which python || echo "Python nie znaleziony"
                     
-                    PYTHON_VERSION=3.9.7
-                    wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
-                    tar xzf Python-${PYTHON_VERSION}.tgz
-                    cd Python-${PYTHON_VERSION}
-                    ./configure --prefix=$(pwd)/../python-local
-                    make && make install
-                    cd ..
-                    export PATH=$(pwd)/python-local/bin:$PATH
-                    python --version
-                '''
-            }
-        }
-        
-        stage('Run Tests') {
-            steps {
-                sh '''
-                    
-                    export PATH=$(pwd)/python-local/bin:$PATH
-                    python -m pip install -r requirements.txt
-                    python -m pytest tests/ --junitxml=test-results.xml
+                    # Jeśli python3 jest dostępny, użyj go
+                    if command -v python3 &> /dev/null; then
+                        echo "Używam python3"
+                        python3 -m pip install --user -r requirements.txt
+                        python3 -m pytest tests/ --junitxml=test-results.xml
+                    elif command -v python &> /dev/null; then
+                        echo "Używam python"
+                        python -m pip install --user -r requirements.txt
+                        python -m pytest tests/ --junitxml=test-results.xml
+                    else
+                        echo "ERROR: Python nie jest dostępny w systemie"
+                        exit 1
+                    fi
                 '''
             }
             post {
