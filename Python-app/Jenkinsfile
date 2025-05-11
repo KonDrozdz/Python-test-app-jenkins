@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/twoje-repo/python-app.git'
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                sh 'python -m pytest tests/'
+            }
+        }
+        
+        stage('Build Docker') {
+            steps {
+                sh 'docker build -t python-app .'
+            }
+        }
+    }
+    
+    post {
+        always {
+            junit '**/test-results.xml'
+        }
+    }
+}
