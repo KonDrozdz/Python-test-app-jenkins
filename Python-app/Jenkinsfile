@@ -2,32 +2,37 @@ pipeline {
     agent any
     
     stages {
-        stage('Install Python') {
-            steps {
-                sh '''
-                    
-                    if ! command -v python3 &> /dev/null; then
-                        echo "Instalowanie Pythona..."
-                        apt-get update && apt-get install -y python3 python3-pip
-                    fi
-                    
-                    
-                    ln -sf /usr/bin/python3 /usr/bin/python
-                    python --version
-                '''
-            }
-        }
-        
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git', branch: 'main'
             }
         }
         
+        stage('Setup Python Environment') {
+            steps {
+                sh '''
+                    
+                    PYTHON_VERSION=3.9.7
+                    wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+                    tar xzf Python-${PYTHON_VERSION}.tgz
+                    cd Python-${PYTHON_VERSION}
+                    ./configure --prefix=$(pwd)/../python-local
+                    make && make install
+                    cd ..
+                    export PATH=$(pwd)/python-local/bin:$PATH
+                    python --version
+                '''
+            }
+        }
+        
         stage('Run Tests') {
             steps {
-                sh 'python -m pip install -r requirements.txt'
-                sh 'python -m pytest tests/ --junitxml=test-results.xml'
+                sh '''
+                    
+                    export PATH=$(pwd)/python-local/bin:$PATH
+                    python -m pip install -r requirements.txt
+                    python -m pytest tests/ --junitxml=test-results.xml
+                '''
             }
             post {
                 always {
