@@ -4,29 +4,33 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git(
-                    url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git',
-                    branch: 'main'
-                )
+                git url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git', branch: 'main'
+            }
+        }
+        
+        stage('Setup') {
+            steps {
+                sh 'python -m pip install -r requirements.txt'
             }
         }
         
         stage('Test') {
             steps {
-                sh 'python -m pytest tests/'
+                sh 'python -m pytest tests/ --junitxml=test-results.xml'
+            }
+            post {
+                always {
+                    junit 'test-results.xml'
+                }
             }
         }
         
         stage('Build Docker') {
             steps {
-                sh 'docker build -t python-app .'
+                script {
+                    docker.build("python-app")
+                }
             }
-        }
-    }
-    
-    post {
-        always {
-            junit '**/test-results.xml'
         }
     }
 }
