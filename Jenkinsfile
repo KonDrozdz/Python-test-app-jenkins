@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        SONARQUBE_SCANNER = tool 'SonarQubeScanner'
+        SONARQUBE_TOKEN = credentials('sonarqube-token')
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -31,7 +36,6 @@ pipeline {
                 sh 'mvn -B test' 
                 junit '**/target/surefire-reports/*.xml'
                 
-                
                 sh '''
                     echo "### Zawartość target ###"
                     ls -laR target/
@@ -40,6 +44,7 @@ pipeline {
                 '''
             }
         }
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
@@ -68,21 +73,26 @@ pipeline {
                 archiveArtifacts 'target/*.jar'
             }
         }
-    }
-    stage('Notifications') {
-    steps {
-        script {
-            def buildStatus = currentBuild.result ?: 'SUCCESS'
-            slackSend(
-                channel: '#your-channel',
-                message: "Build ${buildStatus}: ${env.JOB_NAME} ${env.BUILD_NUMBER}\n${env.BUILD_URL}"
-            )
+
+        stage('Notifications') {
+            steps {
+                script {
+                    def buildStatus = currentBuild.result ?: 'SUCCESS'
+                    slackSend(
+                        channel: '#your-channel',
+                        message: "Build ${buildStatus}: ${env.JOB_NAME} ${env.BUILD_NUMBER}\n${env.BUILD_URL}"
+                    )
+                }
+            }
         }
     }
 
     post {
         always {
             echo 'Pipeline zakończony'
+            script {
+                currentBuild.description = "Status: ${currentBuild.result ?: 'SUCCESS'}"
+            }
         }
     }
 }
