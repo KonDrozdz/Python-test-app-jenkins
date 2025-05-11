@@ -69,6 +69,16 @@ pipeline {
             }
         }
     }
+    stage('Notifications') {
+    steps {
+        script {
+            def buildStatus = currentBuild.result ?: 'SUCCESS'
+            slackSend(
+                channel: '#your-channel',
+                message: "Build ${buildStatus}: ${env.JOB_NAME} ${env.BUILD_NUMBER}\n${env.BUILD_URL}"
+            )
+        }
+    }
 
     post {
         always {
