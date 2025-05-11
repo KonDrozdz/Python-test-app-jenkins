@@ -28,10 +28,10 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'mvn -B test' // -B for batch mode
+                sh 'mvn -B test' 
                 junit '**/target/surefire-reports/*.xml'
                 
-                // Dodatkowa diagnostyka
+                
                 sh '''
                     echo "### Zawartość target ###"
                     ls -laR target/
