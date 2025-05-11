@@ -2,32 +2,43 @@ pipeline {
     agent any
     
     stages {
-        stage('Checkout') {
-            steps {
-                checkout([
-                    $class: 'GitSCM', 
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git']]
-                ])
-            }
-        }
-        
-        stage('Setup Python') {
-            steps {
-                script {
-                    // Sprawdź czy Python jest dostępny w systemie Jenkinsa
-                    def pythonPath = tool name: 'python3', type: 'python'
-                    env.PATH = "${pythonPath}/bin:${env.PATH}"
-                }
-                sh 'python --version'
-            }
-        }
-        
-        stage('Install & Test') {
+        stage('Install Python') {
             steps {
                 sh '''
-                    python -m pip install --user -r requirements.txt
-                    python -m pytest tests/ --junitxml=test-results.xml
+                    # Instalacja Python3 i pip (dla Ubuntu/Debian)
+                    if ! command -v python3 &> /dev/null; then
+                        echo "Instalowanie Pythona..."
+                        sudo apt-get update -qq
+                        sudo apt-get install -y python3 python3-pip python3-venv
+                    fi
+                    python3 --version
+                '''
+            }
+        }
+
+        stage('Checkout Code') {
+            steps {
+                git url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git', 
+                     branch: 'main'
+            }
+        }
+
+        stage('Setup Environment') {
+            steps {
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh '''
+                    . venv/bin/activate
+                    pytest tests/ --junitxml=test-results.xml
                 '''
             }
             post {
