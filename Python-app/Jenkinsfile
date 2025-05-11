@@ -1,5 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.9-slim'
+        }
+    }
     
     stages {
         stage('Checkout') {
@@ -10,13 +14,14 @@ pipeline {
         
         stage('Setup') {
             steps {
-                sh 'python -m pip install -r requirements.txt'
+                sh 'python -m pip install --upgrade pip'
+                sh 'pip install -r requirements.txt'
             }
         }
         
         stage('Test') {
             steps {
-                sh 'python -m pytest tests/ --junitxml=test-results.xml'
+                sh 'pytest tests/ --junitxml=test-results.xml'
             }
             post {
                 always {
