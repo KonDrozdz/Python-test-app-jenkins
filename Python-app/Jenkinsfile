@@ -4,30 +4,30 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git', branch: 'main'
+                checkout([
+                    $class: 'GitSCM', 
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git']]
+                ])
             }
         }
         
-        stage('Find Python') {
+        stage('Setup Python') {
+            steps {
+                script {
+                    // Sprawdź czy Python jest dostępny w systemie Jenkinsa
+                    def pythonPath = tool name: 'python3', type: 'python'
+                    env.PATH = "${pythonPath}/bin:${env.PATH}"
+                }
+                sh 'python --version'
+            }
+        }
+        
+        stage('Install & Test') {
             steps {
                 sh '''
-                    # Sprawdź dostępne wersje Pythona
-                    echo "Szukam Pythona w systemie..."
-                    which python3 || which python || echo "Python nie znaleziony"
-                    
-                    # Jeśli python3 jest dostępny, użyj go
-                    if command -v python3 &> /dev/null; then
-                        echo "Używam python3"
-                        python3 -m pip install --user -r requirements.txt
-                        python3 -m pytest tests/ --junitxml=test-results.xml
-                    elif command -v python &> /dev/null; then
-                        echo "Używam python"
-                        python -m pip install --user -r requirements.txt
-                        python -m pytest tests/ --junitxml=test-results.xml
-                    else
-                        echo "ERROR: Python nie jest dostępny w systemie"
-                        exit 1
-                    fi
+                    python -m pip install --user -r requirements.txt
+                    python -m pytest tests/ --junitxml=test-results.xml
                 '''
             }
             post {
