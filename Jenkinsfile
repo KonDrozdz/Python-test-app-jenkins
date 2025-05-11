@@ -9,6 +9,17 @@ pipeline {
             }
         }
 
+        stage('Verify Structure') {
+            steps {
+                sh '''
+                    echo "### Pełna struktura projektu ###"
+                    find . -type f
+                    echo "### Zawartość src/test ###"
+                    ls -laR src/test/java/
+                '''
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'mvn clean compile'
@@ -17,15 +28,15 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'mvn test'
+                sh 'mvn -B test' // -B for batch mode
                 junit '**/target/surefire-reports/*.xml'
                 
-                // Diagnostyka
+                // Dodatkowa diagnostyka
                 sh '''
-                    echo "### Struktura po testach ###"
-                    find . -name "*.java"
+                    echo "### Zawartość target ###"
+                    ls -laR target/
                     echo "### Raporty testowe ###"
-                    ls -laR target/surefire-reports/
+                    ls -la target/surefire-reports/ || true
                 '''
             }
         }
