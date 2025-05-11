@@ -2,12 +2,6 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/twoj-user/simple-java-app.git'
-            }
-        }
-
         stage('Build') {
             steps {
                 sh 'mvn clean compile'
