@@ -1,39 +1,29 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.9-slim'
-        }
-    }
+    agent any  
     
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git', branch: 'main'
+                git url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git', 
+                     branch: 'main'
             }
         }
         
         stage('Setup') {
             steps {
-                sh 'python -m pip install --upgrade pip'
-                sh 'pip install -r requirements.txt'
+                
+                sh 'python --version'  
+                sh 'python -m pip install -r requirements.txt'
             }
         }
         
         stage('Test') {
             steps {
-                sh 'pytest tests/ --junitxml=test-results.xml'
+                sh 'python -m pytest tests/ --junitxml=test-results.xml'
             }
             post {
                 always {
-                    junit 'test-results.xml'
-                }
-            }
-        }
-        
-        stage('Build Docker') {
-            steps {
-                script {
-                    docker.build("python-app")
+                    junit 'test-results.xml'  
                 }
             }
         }
