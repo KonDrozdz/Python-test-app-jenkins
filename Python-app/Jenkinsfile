@@ -1,37 +1,30 @@
 pipeline {
     agent {
         docker {
-            image 'python:3.9-slim' 
+            image 'python:3.9-slim'
             args '--user root' 
-            reuseNode true  
         }
     }
     
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git',
+                git url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git', 
                      branch: 'main'
-            }
-        }
-        
-        stage('Setup') {
-            steps {
-                sh '''
-                    python --version
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                '''
             }
         }
         
         stage('Test') {
             steps {
-                sh 'pytest tests/ --junitxml=test-results.xml'
+                sh '''
+                    python --version
+                    pip install -r requirements.txt
+                    pytest tests/ --junitxml=test-results.xml
+                '''
             }
             post {
                 always {
-                    junit 'test-results.xml' 
+                    junit 'test-results.xml'
                 }
             }
         }
