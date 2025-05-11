@@ -1,9 +1,9 @@
 pipeline {
     agent {
         docker {
-            image 'python:3.9-slim'  # Oficjalny obraz Pythona
-            args '--user root'  # Uprawnienia do instalacji pakietów
-            reuseNode true  # Optymalizacja zasobów
+            image 'python:3.9-slim' 
+            args '--user root' 
+            reuseNode true  
         }
     }
     
@@ -31,7 +31,7 @@ pipeline {
             }
             post {
                 always {
-                    junit 'test-results.xml'  # Raportowanie wyników
+                    junit 'test-results.xml' 
                 }
             }
         }
