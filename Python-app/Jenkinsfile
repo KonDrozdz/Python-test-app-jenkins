@@ -4,7 +4,10 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/KonDrozdz/Python-test-app-jenkins.git'
+                git(
+                    url: 'https://github.com/KonDrozdz/Python-test-app-jenkins.git',
+                    branch: 'main'
+                )
             }
         }
         
